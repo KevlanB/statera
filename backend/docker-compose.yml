@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:9.2.0
+    container_name: mysql_nest
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: test_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"  # Porta do MySQL
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build:
+      context: .  # Contexto é o diretório atual (backend)
+      dockerfile: Dockerfile
+    container_name: nest_backend
+    ports:
+      - "3000:3000"  # Backend exposto na porta 3000
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: 3306
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+      MYSQL_DB: test_db
+    depends_on:
+      - db  # Backend depende do banco de dados
+
+volumes:
+  mysql_data:
