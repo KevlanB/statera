@@ -149,8 +149,7 @@ export default function CreateOrderPage() {
 
     await axios
       .post(`${apiUrl}/orders`, data)
-      .then((response) => {
-        // console.log(response);
+      .then(() => {
         cleanFields();
         addToast({
           title: "Pedido Salvo!",
@@ -159,11 +158,14 @@ export default function CreateOrderPage() {
           color: "success",
         });
       })
-      .catch((err) => {
-        console.log(err); // Handling error
+      .catch(() => {
+        addToast({
+          title: "Erro ao salvar o pedido",
+          timeout: 3000,
+          shouldShowTimeoutProgress: true,
+          color: "success",
+        });
       });
-
-    // console.log(data);
   };
 
   const changeClient = (e: any) => {
@@ -174,7 +176,7 @@ export default function CreateOrderPage() {
   return (
     <div className="p-4">
       {/* Breadcrumbs */}
-      <Breadcrumbs className="absolute top-0 left-0">
+      <Breadcrumbs className="absolute top-0 left-10">
         <BreadcrumbItem href="/">Início</BreadcrumbItem>
         <BreadcrumbItem>Criar Pedido</BreadcrumbItem>
       </Breadcrumbs>

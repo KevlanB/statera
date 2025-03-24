@@ -31,6 +31,7 @@ export default function LoginPage() {
 
       if (response.status === 201) {
         const { access_token } = response.data; // Extrai o token do objeto de resposta
+
         login(access_token); // Autentica o usuário com o token
         router.push("/"); // Redireciona para a página protegida
       } else {

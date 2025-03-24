@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function LoginLayout({
   children,
 }: {
@@ -21,7 +23,7 @@ export default function LoginLayout({
           <div className="absolute inset-0 bg-black bg-opacity-20 backdrop-blur-sm" />
 
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <img
+            <Image
               alt="Imagem central"
               className="w-40 h-40 object-cover rounded-md"
               src="/logo.jpg"

@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { Suspense, useEffect, useState } from "react";
 import axios from "axios";
 import {
   Table,
@@ -24,13 +25,10 @@ import ConfirmationModal from "@/components/confirmationModal";
 import ItemModal from "@/components/itemModal";
 import { useAuth } from "@/context/AuthContext";
 
-export default function Home() {
+function HomeContent() {
   // Estados (Hooks)
   const [data, setData] = useState<Data[]>([]);
-  const [erro, setErro] = useState<string | null>(null);
-
   const [currentOrder, setCurrentOrder] = useState<Data | null>(null);
-  const [loading, setLoading] = useState(false);
 
   // Modais
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,9 +57,9 @@ export default function Home() {
           shouldShowTimeoutProgress: true,
           color: "danger",
         });
-        console.log("Pagamento cancelado para o ID:", id);
       } else {
         // Exibe um toast de sucesso
+
         addToast({
           title: "Pagamento realizado!",
           timeout: 3000,
@@ -72,7 +70,7 @@ export default function Home() {
         // Atualiza o status do pedido no backend
         axios
           .put(`${apiUrl}/orders/${numberId}`, { status: "pago" })
-          .then((response) => {
+          .then(() => {
             // Atualiza o estado `data` com o novo status
             setData((prevOrders) =>
               prevOrders.map((order) =>
@@ -80,7 +78,7 @@ export default function Home() {
               ),
             );
           })
-          .catch((err) => {
+          .catch(() => {
             // Exibe um toast de erro
             addToast({
               title: "Erro ao atualizar o pedido",
@@ -88,10 +86,7 @@ export default function Home() {
               shouldShowTimeoutProgress: true,
               color: "danger",
             });
-            console.error("Erro ao editar o pedido:", err);
           });
-
-        console.log("sucesso para o ID:", id);
       }
     }
   }, [id, status, addToast, apiUrl, setData]);
@@ -103,9 +98,8 @@ export default function Home() {
         const response = await axios.get(`${apiUrl}/orders`);
 
         setData(response.data); // Atualiza o estado com os dados
-      } catch (err) {
+      } catch (_err) {
         logout();
-        setErro("Erro ao carregar os dados"); // Trata o erro
       }
     };
 
@@ -183,23 +177,21 @@ export default function Home() {
   const handleConfirmDelete = async () => {
     if (!orderToDeleteId) return; // Se não houver ID, cancela
 
-    setLoading(true); // Ativa o indicador de carregamento
-
     try {
-      const response = await axios.delete(
-        `${apiUrl}/orders/${orderToDeleteId}`,
-      );
-
-      // console.log(response.status);
+      await axios.delete(`${apiUrl}/orders/${orderToDeleteId}`);
 
       // Atualiza a lista de pedidos após a exclusão
       setData((prevData) =>
         prevData.filter((order) => order.id !== orderToDeleteId),
       );
-    } catch (err) {
-      setErro("Erro ao deletar o pedido"); // Trata o erro
+    } catch (_err) {
+      addToast({
+        title: "Erro ao deletar o pedido",
+        timeout: 3000,
+        shouldShowTimeoutProgress: true,
+        color: "danger",
+      });
     } finally {
-      setLoading(false); // Desativa o indicador de carregamento
       setIsConfirmationModalOpen(false); // Fecha o modal
       setOrderToDeleteId(null); // Limpa o ID do pedido
     }
@@ -207,12 +199,11 @@ export default function Home() {
 
   // Função para editar/salvar pedidos
   const handleSubmitOrder = async (orderData: any) => {
-    // console.log(orderData);
     if (orderData.id) {
       // Edita um pedido existente
       await axios
         .put(`${apiUrl}/orders/${orderData.id}`, orderData)
-        .then((response) => {
+        .then(() => {
           setData((prevOrders) =>
             prevOrders.map((order) =>
               order.id === orderData.id ? { ...order, ...orderData } : order,
@@ -220,7 +211,12 @@ export default function Home() {
           );
         })
         .catch((err) => {
-          setErro("Erro ao editar o pedido");
+          addToast({
+            title: "Erro ao editar o pedido",
+            timeout: 3000,
+            shouldShowTimeoutProgress: true,
+            color: "danger",
+          });
         });
     } else {
       // Cria um novo pedido
@@ -230,7 +226,12 @@ export default function Home() {
           setData((prevOrders) => [...prevOrders, response.data]);
         })
         .catch((err) => {
-          setErro("Erro ao criar o pedido");
+          addToast({
+            title: "Erro ao criar o pedido",
+            timeout: 3000,
+            shouldShowTimeoutProgress: true,
+            color: "danger",
+          });
         });
     }
     handleCloseModal(); // Fecha o modal após salvar
@@ -247,7 +248,6 @@ export default function Home() {
 
   const handleSubmitItem = async (itemData: any) => {
     // Cria um pagamento
-    // console.log("pronto pra pagar", itemData);
     const items = itemData.items;
     const id = itemData.id;
 
@@ -375,14 +375,21 @@ export default function Home() {
           onClose={() => setIsConfirmationModalOpen(false)}
           onConfirm={handleConfirmDelete}
         />
-
         <ItemModal
           isOpen={isModalOpenItem}
-          item={convertDataToOrder(currentOrder)} // Passa o pedido para edição (ou null para criar um novo)
+          item={convertDataToOrder(currentItem)} // Passa o pedido para edição (ou null para criar um novo)
           onClose={handleCloseModalItem}
           onSubmit={handleSubmitItem}
         />
       </section>
     </ProtectedRoute>
+  );
+}
+
+export default function Home(): JSX.Element {
+  return (
+    <Suspense fallback={<div>Carregando...</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

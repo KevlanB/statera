@@ -18,6 +18,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import UserModal from "@/components/userModal";
 import ConfirmationModal from "@/components/confirmationModal";
 import { useAuth } from "@/context/AuthContext";
+import { addToast } from "@heroui/toast";
 
 // Defina a interface Data
 interface Data {
@@ -46,8 +47,6 @@ export default function UsersPage() {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  console.log(apiUrl);
-
   const { logout } = useAuth();
 
   // Estado para armazenar o token
@@ -69,11 +68,15 @@ export default function UsersPage() {
         },
       });
 
-      // console.log(response.data);
       setData(response.data); // Atualiza o estado com os dados
     } catch (err) {
       logout();
-      console.log("Erro ao carregar os dados"); // Trata o erro
+      addToast({
+        title: "Erro ao carregar os dados",
+        timeout: 3000,
+        shouldShowTimeoutProgress: true,
+        color: "danger",
+      });
     }
   };
 
@@ -103,7 +106,6 @@ export default function UsersPage() {
 
   // Função para editar/salvar users
   const handleSubmitOrder = async (userData: User) => {
-    // console.log(userData);
     try {
       // Cria um novo usuário
       const response = await axios.post(`${apiUrl}/users/register`, userData);
@@ -130,7 +132,7 @@ export default function UsersPage() {
     setLoading(true); // Ativa o indicador de carregamento
 
     try {
-      const response = await axios.delete(`${apiUrl}/users/${userToDeleteId}`, {
+      await axios.delete(`${apiUrl}/users/${userToDeleteId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -140,7 +142,7 @@ export default function UsersPage() {
       setData((prevData) =>
         prevData.filter((user) => user.id !== userToDeleteId),
       );
-    } catch (err) {
+    } catch (_err) {
       setErro("Erro ao deletar o pedido"); // Trata o erro
     } finally {
       setLoading(false); // Desativa o indicador de carregamento
