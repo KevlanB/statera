@@ -25,8 +25,10 @@ export default function LoginLayout({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
             <Image
               alt="Imagem central"
-              className="w-40 h-40 object-cover rounded-md"
+              className="object-cover rounded-md"
+              height={80}
               src="/logo.jpg"
+              width={80}
             />
             <h1 className="font-bold text-white text-4xl">Statera Amazon</h1>
           </div>
